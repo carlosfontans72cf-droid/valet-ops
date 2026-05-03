@@ -598,6 +598,15 @@ export const CreateAccessCodeBody = zod.object({
 });
 
 /**
+ * @summary Bulk generate access codes (owner only)
+ */
+export const BulkGenerateCodesBody = zod.object({
+  eventId: zod.number(),
+  driverCount: zod.number(),
+  adminCount: zod.number(),
+});
+
+/**
  * @summary Delete/revoke an access code (owner only)
  */
 export const DeleteAccessCodeParams = zod.object({
