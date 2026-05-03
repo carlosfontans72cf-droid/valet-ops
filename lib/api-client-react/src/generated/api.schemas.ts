@@ -377,3 +377,9 @@ export type ListParkingLocationsParams = {
 export type ListAccessCodesParams = {
   eventId: number;
 };
+
+export type BulkGenerateCodesBody = {
+  eventId: number;
+  driverCount: number;
+  adminCount: number;
+};
