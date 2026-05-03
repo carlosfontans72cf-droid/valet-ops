@@ -20,6 +20,7 @@ import type {
   AccessCode,
   AppConfig,
   BlockedIp,
+  BulkGenerateCodesBody,
   CreateAccessCodeBody,
   CreateEventBody,
   CreateParkingLocationBody,
@@ -2809,6 +2810,92 @@ export const useCreateAccessCode = <
   TContext
 > => {
   return useMutation(getCreateAccessCodeMutationOptions(options));
+};
+
+/**
+ * @summary Bulk generate access codes (owner only)
+ */
+export const getBulkGenerateCodesUrl = () => {
+  return `/api/access-codes/bulk`;
+};
+
+export const bulkGenerateCodes = async (
+  bulkGenerateCodesBody: BulkGenerateCodesBody,
+  options?: RequestInit,
+): Promise<AccessCode[]> => {
+  return customFetch<AccessCode[]>(getBulkGenerateCodesUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(bulkGenerateCodesBody),
+  });
+};
+
+export const getBulkGenerateCodesMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof bulkGenerateCodes>>,
+    TError,
+    { data: BodyType<BulkGenerateCodesBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof bulkGenerateCodes>>,
+  TError,
+  { data: BodyType<BulkGenerateCodesBody> },
+  TContext
+> => {
+  const mutationKey = ["bulkGenerateCodes"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof bulkGenerateCodes>>,
+    { data: BodyType<BulkGenerateCodesBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return bulkGenerateCodes(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type BulkGenerateCodesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof bulkGenerateCodes>>
+>;
+export type BulkGenerateCodesMutationBody = BodyType<BulkGenerateCodesBody>;
+export type BulkGenerateCodesMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Bulk generate access codes (owner only)
+ */
+export const useBulkGenerateCodes = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof bulkGenerateCodes>>,
+    TError,
+    { data: BodyType<BulkGenerateCodesBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof bulkGenerateCodes>>,
+  TError,
+  { data: BodyType<BulkGenerateCodesBody> },
+  TContext
+> => {
+  return useMutation(getBulkGenerateCodesMutationOptions(options));
 };
 
 /**
