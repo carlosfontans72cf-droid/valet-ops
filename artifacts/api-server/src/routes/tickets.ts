@@ -87,7 +87,8 @@ router.post("/tickets", requireAuth(["owner", "admin", "driver"]), async (req: A
     return;
   }
 
-  const performer = (req as AuthRequest).session?.driverName ?? "Desconocido";
+  const postSession = (req as AuthRequest).session;
+  const performer = postSession?.driverName?.trim() || (postSession?.role === "owner" ? "Dueño" : "Equipo");
 
   const [ticket] = await db
     .insert(valetTicketsTable)
@@ -176,13 +177,16 @@ router.get("/tickets/:ticketId", requireAuth(), async (req, res) => {
 });
 
 // PATCH /api/tickets/:ticketId
-router.patch("/tickets/:ticketId", requireAuth(["owner", "admin", "driver"]), async (req, res) => {
+router.patch("/tickets/:ticketId", requireAuth(["owner", "admin", "driver"]), async (req: AuthRequest, res) => {
   const ticketId = parseInt(req.params.ticketId as string);
   const parsed = UpdateTicketBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "invalid_body" });
     return;
   }
+
+  const session = req.session;
+  const performer = session?.driverName?.trim() || (session?.role === "owner" ? "Dueño" : "Equipo");
 
   const updateData: Partial<typeof valetTicketsTable.$inferInsert> = {};
   if (parsed.data.status !== undefined) updateData.status = parsed.data.status;
@@ -192,6 +196,9 @@ router.patch("/tickets/:ticketId", requireAuth(["owner", "admin", "driver"]), as
   if (parsed.data.vehicleDamages !== undefined) updateData.vehicleDamages = parsed.data.vehicleDamages;
   if (parsed.data.notes !== undefined) updateData.notes = parsed.data.notes;
   if (parsed.data.status === "delivered") updateData.deliveredAt = new Date();
+  // Store performer name IN THE SAME update so the returned row has correct values
+  if (parsed.data.status === "relocated") updateData.relocatedBy = performer;
+  if (parsed.data.status === "delivered") updateData.deliveredBy = performer;
 
   const [updated] = await db
     .update(valetTicketsTable)
@@ -204,15 +211,8 @@ router.patch("/tickets/:ticketId", requireAuth(["owner", "admin", "driver"]), as
     return;
   }
 
-  // Record movement when status changes
+  // Record movement log entry when status changes
   if (parsed.data.status) {
-    const performer = (req as AuthRequest).session?.driverName ?? "Desconocido";
-    // Save who did it on the ticket itself
-    if (parsed.data.status === "relocated") {
-      await db.update(valetTicketsTable).set({ relocatedBy: performer }).where(eq(valetTicketsTable.id, ticketId));
-    } else if (parsed.data.status === "delivered") {
-      await db.update(valetTicketsTable).set({ deliveredBy: performer }).where(eq(valetTicketsTable.id, ticketId));
-    }
     let movLocationName: string | null = null;
     const locId = parsed.data.relocatedToLocationId ?? parsed.data.parkingLocationId ?? updated.relocatedToLocationId ?? updated.parkingLocationId;
     if (locId) {
