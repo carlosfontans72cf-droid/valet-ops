@@ -121,6 +121,25 @@ export interface UpdateShiftBody {
   isOpen?: boolean;
 }
 
+export type TicketMovementAction =
+  (typeof TicketMovementAction)[keyof typeof TicketMovementAction];
+
+export const TicketMovementAction = {
+  parked: "parked",
+  in_transit: "in_transit",
+  delivered: "delivered",
+  relocated: "relocated",
+} as const;
+
+export interface TicketMovement {
+  id: number;
+  ticketId: number;
+  action: TicketMovementAction;
+  performedBy: string;
+  locationName?: string | null;
+  createdAt: string;
+}
+
 export type ValetTicketKeyLocation =
   (typeof ValetTicketKeyLocation)[keyof typeof ValetTicketKeyLocation];
 
@@ -167,11 +186,11 @@ export interface ValetTicket {
   notes?: string | null;
   relocatedToLocationId?: number | null;
   relocatedToLocationName?: string | null;
-  vehicleColor?: string | null;
-  vehicleBrand?: string | null;
-  licensePlate?: string | null;
   createdAt: string;
   deliveredAt?: string | null;
+  parkedBy?: string | null;
+  relocatedBy?: string | null;
+  deliveredBy?: string | null;
 }
 
 export type CreateTicketBodyKeyLocation =
@@ -205,9 +224,6 @@ export interface CreateTicketBody {
   parkingLocationId: number;
   vehicleDamages?: CreateTicketBodyVehicleDamagesItem[];
   notes?: string;
-  vehicleColor?: string;
-  vehicleBrand?: string;
-  licensePlate?: string;
 }
 
 export type UpdateTicketBodyStatus =
@@ -336,6 +352,10 @@ export type ListTicketHistoryParams = {
   to?: string;
 };
 
+export type DeleteTicket200 = {
+  success: boolean;
+};
+
 export type SearchTicketByValetNumberParams = {
   eventId: number;
 };
@@ -347,15 +367,3 @@ export type ListParkingLocationsParams = {
 export type ListAccessCodesParams = {
   eventId: number;
 };
-
-export interface BlockedIp {
-  ip: string;
-  count: number;
-  lastAttempt: string;
-}
-
-export interface BulkGenerateCodesBody {
-  eventId: number;
-  driverCount: number;
-  adminCount: number;
-}
