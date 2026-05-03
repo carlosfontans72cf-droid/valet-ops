@@ -463,6 +463,27 @@ paths:
         "404":
           description: Not found
 
+  /tickets/{ticketId}/movements:
+    get:
+      operationId: getTicketMovements
+      tags: [tickets]
+      summary: Get movement log for a ticket
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Movement log
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TicketMovement"
+
   /parking-locations:
     get:
       operationId: listParkingLocations
@@ -780,6 +801,26 @@ components:
           format: date-time
         isOpen:
           type: boolean
+
+    TicketMovement:
+      type: object
+      properties:
+        id:
+          type: integer
+        ticketId:
+          type: integer
+        action:
+          type: string
+          enum: [parked, in_transit, delivered, relocated]
+        performedBy:
+          type: string
+        locationName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, ticketId, action, performedBy, createdAt]
 
     ValetTicket:
       type: object
