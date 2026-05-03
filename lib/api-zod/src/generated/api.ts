@@ -40,6 +40,27 @@ export const GetMeResponse = zod.object({
 });
 
 /**
+ * @summary List blocked IPs (owner only)
+ */
+export const GetBlockedIpsResponseItem = zod.object({
+  ip: zod.string(),
+  count: zod.number(),
+  lastAttempt: zod.coerce.date(),
+});
+export const GetBlockedIpsResponse = zod.array(GetBlockedIpsResponseItem);
+
+/**
+ * @summary Unblock an IP (owner only)
+ */
+export const UnblockIpParams = zod.object({
+  ip: zod.coerce.string(),
+});
+
+export const UnblockIpResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
  * @summary Get app configuration (name, etc.)
  */
 export const GetConfigResponse = zod.object({
