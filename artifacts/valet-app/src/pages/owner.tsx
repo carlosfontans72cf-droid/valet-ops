@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { useLocation } from "wouter";
 import {
   useGetConfig,
   useUpdateConfig,
@@ -46,14 +47,27 @@ import {
   Download,
   Copy,
   MessageSquare,
+  CreditCard,
 } from "lucide-react";
 
 export default function OwnerPanel() {
+  const [, navigate] = useLocation();
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3 pt-1">
-        <Settings className="w-6 h-6 text-muted-foreground" />
-        <h1 className="text-2xl font-black tracking-tight">Panel Dueño</h1>
+      <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center gap-3">
+          <Settings className="w-6 h-6 text-muted-foreground" />
+          <h1 className="text-2xl font-black tracking-tight">Panel Dueño</h1>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => navigate("/pricing")}
+        >
+          <CreditCard className="w-4 h-4" />
+          Planes
+        </Button>
       </div>
 
       <Tabs defaultValue="events" className="w-full">
