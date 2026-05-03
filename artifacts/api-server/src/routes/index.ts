@@ -8,6 +8,7 @@ import ticketsRouter from "./tickets";
 import parkingRouter from "./parking";
 import accessCodesRouter from "./access-codes";
 import exportRouter from "./export";
+import stripeRouter from "./stripe";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(ticketsRouter);
 router.use(parkingRouter);
 router.use(accessCodesRouter);
 router.use(exportRouter);
+router.use(stripeRouter);
 
 export default router;
