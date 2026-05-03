@@ -87,17 +87,19 @@ router.post("/tickets", requireAuth(["owner", "admin", "driver"]), async (req: A
     return;
   }
 
+  const performer = (req as AuthRequest).session?.driverName ?? "Desconocido";
+
   const [ticket] = await db
     .insert(valetTicketsTable)
     .values({
       ...parsed.data,
       vehicleDamages: parsed.data.vehicleDamages ?? [],
       status: "active",
+      parkedBy: performer,
     })
     .returning();
 
   // Record "parked" movement
-  const performer = (req as AuthRequest).session?.driverName ?? "Desconocido";
   let locationName: string | null = null;
   if (parsed.data.parkingLocationId) {
     const loc = await db.query.parkingLocationsTable.findFirst({
@@ -205,6 +207,12 @@ router.patch("/tickets/:ticketId", requireAuth(["owner", "admin", "driver"]), as
   // Record movement when status changes
   if (parsed.data.status) {
     const performer = (req as AuthRequest).session?.driverName ?? "Desconocido";
+    // Save who did it on the ticket itself
+    if (parsed.data.status === "relocated") {
+      await db.update(valetTicketsTable).set({ relocatedBy: performer }).where(eq(valetTicketsTable.id, ticketId));
+    } else if (parsed.data.status === "delivered") {
+      await db.update(valetTicketsTable).set({ deliveredBy: performer }).where(eq(valetTicketsTable.id, ticketId));
+    }
     let movLocationName: string | null = null;
     const locId = parsed.data.relocatedToLocationId ?? parsed.data.parkingLocationId ?? updated.relocatedToLocationId ?? updated.parkingLocationId;
     if (locId) {
