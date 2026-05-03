@@ -436,6 +436,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ValetTicket"
+    delete:
+      operationId: deleteTicket
+      tags: [tickets]
+      summary: Delete a ticket (owner/admin only)
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required: [success]
 
   /tickets/search/{valetNumber}:
     get:
@@ -867,6 +888,15 @@ components:
         deliveredAt:
           type: string
           format: date-time
+          nullable: true
+        parkedBy:
+          type: string
+          nullable: true
+        relocatedBy:
+          type: string
+          nullable: true
+        deliveredBy:
+          type: string
           nullable: true
       required: [id, eventId, shiftId, valetNumber, driverName, keyLocation, status, vehicleDamages, createdAt]
 
