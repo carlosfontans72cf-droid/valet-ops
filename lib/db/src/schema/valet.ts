@@ -83,6 +83,18 @@ export const valetTicketsTable = pgTable("valet_tickets", {
   deliveredAt: timestamp("delivered_at"),
 });
 
+// Movement log — tracks who parked, relocated, delivered each ticket
+export const ticketMovementsTable = pgTable("ticket_movements", {
+  id: serial("id").primaryKey(),
+  ticketId: integer("ticket_id").notNull(),
+  action: text("action").notNull(), // 'parked' | 'in_transit' | 'delivered' | 'relocated'
+  performedBy: text("performed_by").notNull(),
+  locationName: text("location_name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type TicketMovement = typeof ticketMovementsTable.$inferSelect;
+
 // Login rate limiting — tracks failed attempts per IP
 export const loginAttemptsTable = pgTable("login_attempts", {
   ip: text("ip").primaryKey(),
