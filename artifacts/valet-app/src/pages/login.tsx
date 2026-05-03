@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, CarFront, Eye, EyeOff } from "lucide-react";
+import { Loader2, CarFront, Eye, EyeOff, CreditCard } from "lucide-react";
 
 export default function Login() {
   const { setToken } = useAuth();
@@ -141,6 +141,16 @@ export default function Login() {
           Dueño: solo código. Admin/Piloto: código + evento.
         </p>
       </form>
+
+      <div className="mt-8 text-center">
+        <button
+          onClick={() => setLocation("/pricing")}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <CreditCard className="w-4 h-4" />
+          Ver planes y precios
+        </button>
+      </div>
     </div>
   );
 }
