@@ -24,6 +24,7 @@ import type {
   CreateParkingLocationBody,
   CreateShiftBody,
   CreateTicketBody,
+  DeleteTicket200,
   ErrorResponse,
   Event,
   EventStats,
@@ -1811,6 +1812,90 @@ export const useUpdateTicket = <
   TContext
 > => {
   return useMutation(getUpdateTicketMutationOptions(options));
+};
+
+/**
+ * @summary Delete a ticket (owner/admin only)
+ */
+export const getDeleteTicketUrl = (ticketId: number) => {
+  return `/api/tickets/${ticketId}`;
+};
+
+export const deleteTicket = async (
+  ticketId: number,
+  options?: RequestInit,
+): Promise<DeleteTicket200> => {
+  return customFetch<DeleteTicket200>(getDeleteTicketUrl(ticketId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteTicketMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteTicket>>,
+    TError,
+    { ticketId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteTicket>>,
+  TError,
+  { ticketId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteTicket"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteTicket>>,
+    { ticketId: number }
+  > = (props) => {
+    const { ticketId } = props ?? {};
+
+    return deleteTicket(ticketId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteTicketMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteTicket>>
+>;
+
+export type DeleteTicketMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a ticket (owner/admin only)
+ */
+export const useDeleteTicket = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteTicket>>,
+    TError,
+    { ticketId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteTicket>>,
+  TError,
+  { ticketId: number },
+  TContext
+> => {
+  return useMutation(getDeleteTicketMutationOptions(options));
 };
 
 /**
