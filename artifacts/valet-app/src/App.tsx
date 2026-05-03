@@ -83,9 +83,7 @@ function Router() {
       <Route path="/admin">
         {() => <ProtectedRoute component={AdminPanel} allowedRoles={["admin"]} />}
       </Route>
-      <Route path="/pricing">
-        {() => <ProtectedRoute component={PricingPage} allowedRoles={["owner", "admin"]} />}
-      </Route>
+      <Route path="/pricing" component={PricingPage} />
       <Route component={NotFound} />
     </Switch>
   );
