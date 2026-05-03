@@ -2,7 +2,40 @@ import React from "react";
 import { useAuth } from "@/lib/auth";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { LogOut, Home, KeySquare, Search, History, Settings, ShieldAlert } from "lucide-react";
+import { LogOut, Home, KeySquare, Search, History, Settings, ShieldAlert, Car } from "lucide-react";
+import { useGetEventStats, getGetEventStatsQueryKey } from "@workspace/api-client-react";
+
+function CarCounter({ eventId }: { eventId: number }) {
+  const { data: stats } = useGetEventStats(eventId, {
+    query: {
+      enabled: !!eventId,
+      queryKey: getGetEventStatsQueryKey(eventId),
+      refetchInterval: 15000,
+    },
+  });
+
+  if (!stats) return null;
+
+  const total = (stats.totalActive ?? 0) + (stats.totalInTransit ?? 0) + (stats.totalRelocated ?? 0);
+
+  return (
+    <div className="flex items-center justify-center gap-2 bg-primary/10 border-b border-primary/20 py-2 px-4">
+      <Car className="w-5 h-5 text-primary shrink-0" />
+      <span className="text-sm font-bold text-primary">
+        {total === 0
+          ? "Sin autos en el valet"
+          : total === 1
+          ? "1 auto en el valet"
+          : `${total} autos en el valet`}
+      </span>
+      {stats.totalInTransit > 0 && (
+        <span className="text-xs font-semibold text-yellow-400 ml-1">
+          · {stats.totalInTransit} en camino
+        </span>
+      )}
+    </div>
+  );
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { session, logout } = useAuth();
@@ -14,8 +47,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const { role } = session;
 
+  const ownerEventId = role === "owner"
+    ? (localStorage.getItem("owner_event_id") ? parseInt(localStorage.getItem("owner_event_id")!) : null)
+    : null;
+  const effectiveEventId = role === "owner" ? ownerEventId : (session.eventId ?? null);
+
   return (
     <div className="min-h-[100dvh] flex flex-col w-full max-w-md mx-auto bg-background text-foreground shadow-2xl relative">
+      {effectiveEventId ? <CarCounter eventId={effectiveEventId} /> : null}
       <main className="flex-1 flex flex-col p-4 pb-24 overflow-y-auto">
         {children}
       </main>
