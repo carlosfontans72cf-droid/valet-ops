@@ -36,7 +36,7 @@ app.use("/api", router);
 if (process.env.NODE_ENV === "production") {
   const frontendDist = path.join(process.cwd(), "artifacts/valet-app/dist/public");
   app.use(express.static(frontendDist));
-  app.get("*", (_req, res) => {
+  app.get("*splat", (_req, res) => {
     res.sendFile(path.join(frontendDist, "index.html"));
   });
 }
