@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 
 export interface AuthRequest extends Request {
   session?: {
+    id: number;
     role: string;
     driverName?: string;
     eventId?: number;
@@ -34,6 +35,7 @@ export function requireAuth(roles?: string[]) {
     }
 
     req.session = {
+      id: row.id,
       role: row.role,
       driverName: row.driverName ?? undefined,
       eventId: row.eventId ?? undefined,
