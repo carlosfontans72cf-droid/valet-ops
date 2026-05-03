@@ -397,6 +397,36 @@ export default function Work() {
                   </div>
                 )}
 
+                {/* Movement names — always visible */}
+                {(ticket.parkedBy || ticket.relocatedBy || ticket.deliveredBy) && (
+                  <div className="px-4 pb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    {ticket.parkedBy && (
+                      <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <ParkingCircle className="w-3 h-3 text-primary shrink-0" />
+                        <span className="font-semibold text-foreground">{ticket.parkedBy}</span>
+                      </span>
+                    )}
+                    {ticket.relocatedBy && (
+                      <>
+                        <span className="text-muted-foreground/40 text-xs">→</span>
+                        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <ArrowRight className="w-3 h-3 text-blue-400 shrink-0" />
+                          <span className="font-semibold text-foreground">{ticket.relocatedBy}</span>
+                        </span>
+                      </>
+                    )}
+                    {ticket.deliveredBy && (
+                      <>
+                        <span className="text-muted-foreground/40 text-xs">→</span>
+                        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <CheckCircle className="w-3 h-3 text-green-400 shrink-0" />
+                          <span className="font-semibold text-foreground">{ticket.deliveredBy}</span>
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
+
                 {/* Historial de movimientos */}
                 <div className="border-t border-border">
                   <button
