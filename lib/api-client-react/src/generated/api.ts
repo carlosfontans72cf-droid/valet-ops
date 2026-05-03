@@ -19,6 +19,7 @@ import type {
 import type {
   AccessCode,
   AppConfig,
+  BlockedIp,
   CreateAccessCodeBody,
   CreateEventBody,
   CreateParkingLocationBody,
@@ -41,6 +42,7 @@ import type {
   SessionInfo,
   Shift,
   TicketMovement,
+  UnblockIp200,
   UpdateConfigBody,
   UpdateEventBody,
   UpdateParkingLocationBody,
@@ -359,6 +361,165 @@ export const useLogout = <
   TContext
 > => {
   return useMutation(getLogoutMutationOptions(options));
+};
+
+/**
+ * @summary List blocked IPs (owner only)
+ */
+export const getGetBlockedIpsUrl = () => {
+  return `/api/auth/blocked-ips`;
+};
+
+export const getBlockedIps = async (
+  options?: RequestInit,
+): Promise<BlockedIp[]> => {
+  return customFetch<BlockedIp[]>(getGetBlockedIpsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetBlockedIpsQueryKey = () => {
+  return [`/api/auth/blocked-ips`] as const;
+};
+
+export const getGetBlockedIpsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBlockedIps>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBlockedIps>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetBlockedIpsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBlockedIps>>> = ({
+    signal,
+  }) => getBlockedIps({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBlockedIps>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBlockedIpsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBlockedIps>>
+>;
+export type GetBlockedIpsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List blocked IPs (owner only)
+ */
+
+export function useGetBlockedIps<
+  TData = Awaited<ReturnType<typeof getBlockedIps>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBlockedIps>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBlockedIpsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Unblock an IP (owner only)
+ */
+export const getUnblockIpUrl = (ip: string) => {
+  return `/api/auth/blocked-ips/${ip}`;
+};
+
+export const unblockIp = async (
+  ip: string,
+  options?: RequestInit,
+): Promise<UnblockIp200> => {
+  return customFetch<UnblockIp200>(getUnblockIpUrl(ip), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getUnblockIpMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof unblockIp>>,
+    TError,
+    { ip: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof unblockIp>>,
+  TError,
+  { ip: string },
+  TContext
+> => {
+  const mutationKey = ["unblockIp"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof unblockIp>>,
+    { ip: string }
+  > = (props) => {
+    const { ip } = props ?? {};
+
+    return unblockIp(ip, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UnblockIpMutationResult = NonNullable<
+  Awaited<ReturnType<typeof unblockIp>>
+>;
+
+export type UnblockIpMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Unblock an IP (owner only)
+ */
+export const useUnblockIp = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof unblockIp>>,
+    TError,
+    { ip: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof unblockIp>>,
+  TError,
+  { ip: string },
+  TContext
+> => {
+  return useMutation(getUnblockIpMutationOptions(options));
 };
 
 /**
