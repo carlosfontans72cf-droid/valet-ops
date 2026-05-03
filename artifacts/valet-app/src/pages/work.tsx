@@ -10,17 +10,74 @@ import {
   useListEvents,
   useListShifts,
   useListParkingLocations,
+  useGetTicketMovements,
   getListTicketsQueryKey,
   getListEventsQueryKey,
   getListShiftsQueryKey,
   getListParkingLocationsQueryKey,
+  getGetTicketMovementsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Search, Car, Key, MapPin, Trash2 } from "lucide-react";
+import { Loader2, Plus, Search, Car, Key, MapPin, Trash2, History, ParkingCircle, ArrowRight, CheckCircle, Navigation } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+
+const ACTION_CONFIG: Record<string, { label: string; color: string; Icon: React.ElementType }> = {
+  parked:     { label: "Estacionado",  color: "text-primary",    Icon: ParkingCircle },
+  in_transit: { label: "En camino",    color: "text-yellow-400", Icon: Navigation },
+  relocated:  { label: "Reubicado",    color: "text-blue-400",   Icon: ArrowRight },
+  delivered:  { label: "Entregado",    color: "text-green-400",  Icon: CheckCircle },
+};
+
+function MovementLog({ ticketId }: { ticketId: number }) {
+  const { data: movements, isLoading } = useGetTicketMovements(ticketId, {
+    query: {
+      queryKey: getGetTicketMovementsQueryKey(ticketId),
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-3">
+        <Loader2 className="animate-spin w-4 h-4 text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!movements || movements.length === 0) {
+    return (
+      <p className="text-xs text-muted-foreground text-center py-2">Sin movimientos registrados</p>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {movements.map((mov) => {
+        const cfg = ACTION_CONFIG[mov.action] ?? { label: mov.action, color: "text-muted-foreground", Icon: History };
+        const { label, color, Icon } = cfg;
+        return (
+          <div key={mov.id} className="flex items-start gap-2">
+            <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${color}`} />
+            <div className="flex-1 min-w-0">
+              <span className={`text-xs font-bold ${color}`}>{label}</span>
+              <span className="text-xs text-foreground font-semibold"> · {mov.performedBy}</span>
+              {mov.locationName && (
+                <span className="text-xs text-muted-foreground"> → {mov.locationName}</span>
+              )}
+              <p className="text-[10px] text-muted-foreground">
+                {new Date(mov.createdAt).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
+                {" · "}
+                {new Date(mov.createdAt).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })}
+              </p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 const KEY_COLORS: Record<string, string> = {
   drawer: "text-blue-400 bg-blue-500/10 border-blue-500/30",
@@ -55,6 +112,7 @@ export default function Work() {
     session?.eventId ?? null
   );
   const [relocatingTicketId, setRelocatingTicketId] = useState<number | null>(null);
+  const [expandedLogTicketId, setExpandedLogTicketId] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
   const isOwner = session?.role === "owner";
@@ -338,6 +396,22 @@ export default function Work() {
                     )}
                   </div>
                 )}
+
+                {/* Historial de movimientos */}
+                <div className="border-t border-border">
+                  <button
+                    onClick={() => setExpandedLogTicketId(expandedLogTicketId === ticket.id ? null : ticket.id)}
+                    className="w-full flex items-center justify-center gap-1.5 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
+                  >
+                    <History className="w-3 h-3" />
+                    {expandedLogTicketId === ticket.id ? "Ocultar historial" : "Ver historial"}
+                  </button>
+                  {expandedLogTicketId === ticket.id && (
+                    <div className="px-4 pb-3 pt-1 bg-muted/10 border-t border-border/50">
+                      <MovementLog ticketId={ticket.id} />
+                    </div>
+                  )}
+                </div>
 
                 {/* Action buttons — 3 in a row */}
                 <div className="grid grid-cols-3 gap-0 border-t border-border">
