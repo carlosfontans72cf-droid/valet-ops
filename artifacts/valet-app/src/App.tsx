@@ -16,6 +16,7 @@ import Search from "@/pages/search";
 import HistoryPage from "@/pages/history";
 import OwnerPanel from "@/pages/owner";
 import AdminPanel from "@/pages/admin";
+import PricingPage from "@/pages/pricing";
 import NotFound from "@/pages/not-found";
 
 const TEN_MINUTES = 10 * 60 * 1000;
@@ -81,6 +82,9 @@ function Router() {
       </Route>
       <Route path="/admin">
         {() => <ProtectedRoute component={AdminPanel} allowedRoles={["admin"]} />}
+      </Route>
+      <Route path="/pricing">
+        {() => <ProtectedRoute component={PricingPage} allowedRoles={["owner", "admin"]} />}
       </Route>
       <Route component={NotFound} />
     </Switch>
