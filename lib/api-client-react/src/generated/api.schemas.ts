@@ -5,6 +5,12 @@
  * Valet Parking API
  * OpenAPI spec version: 0.1.0
  */
+export interface BlockedIp {
+  ip: string;
+  count: number;
+  lastAttempt: string;
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -324,6 +330,10 @@ export interface CreateAccessCodeBody {
   label: string;
   expiresAfterShiftClose?: boolean;
 }
+
+export type UnblockIp200 = {
+  success: boolean;
+};
 
 export type ListShiftsParams = {
   eventId: number;
