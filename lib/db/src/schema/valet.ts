@@ -79,6 +79,9 @@ export const valetTicketsTable = pgTable("valet_tickets", {
   vehicleColor: text("vehicle_color"),
   vehicleBrand: text("vehicle_brand"),
   licensePlate: text("license_plate"),
+  parkedBy: text("parked_by"),
+  relocatedBy: text("relocated_by"),
+  deliveredBy: text("delivered_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   deliveredAt: timestamp("delivered_at"),
 });
