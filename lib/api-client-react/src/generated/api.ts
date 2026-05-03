@@ -17,8 +17,6 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
-  BlockedIp,
-  BulkGenerateCodesBody,
   AccessCode,
   AppConfig,
   CreateAccessCodeBody,
@@ -41,6 +39,7 @@ import type {
   SearchTicketByValetNumberParams,
   SessionInfo,
   Shift,
+  TicketMovement,
   UpdateConfigBody,
   UpdateEventBody,
   UpdateParkingLocationBody,
@@ -1815,142 +1814,6 @@ export const useUpdateTicket = <
 };
 
 /**
- * @summary Delete a ticket (owner + admin only)
- */
-export const getDeleteTicketUrl = (ticketId: number) => `/api/tickets/${ticketId}`;
-
-export const deleteTicket = async (ticketId: number, options?: RequestInit): Promise<void> => {
-  return customFetch<void>(getDeleteTicketUrl(ticketId), { ...options, method: "DELETE" });
-};
-
-export const getDeleteTicketMutationOptions = <TError = ErrorType<unknown>, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteTicket>>, TError, { ticketId: number }, TContext>;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationOptions<Awaited<ReturnType<typeof deleteTicket>>, TError, { ticketId: number }, TContext> => {
-  const mutationKey = ["deleteTicket"];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTicket>>, { ticketId: number }> = (props) => {
-    const { ticketId } = props ?? {};
-    return deleteTicket(ticketId, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type DeleteTicketMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTicket>>>;
-export type DeleteTicketMutationError = ErrorType<unknown>;
-
-export const useDeleteTicket = <TError = ErrorType<unknown>, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteTicket>>, TError, { ticketId: number }, TContext>;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationResult<Awaited<ReturnType<typeof deleteTicket>>, TError, { ticketId: number }, TContext> => {
-  return useMutation(getDeleteTicketMutationOptions(options));
-};
-
-/**
- * @summary Get blocked IPs (owner only)
- */
-export const getBlockedIpsUrl = () => `/api/auth/blocked-ips`;
-
-export const getBlockedIps = async (options?: RequestInit): Promise<BlockedIp[]> => {
-  return customFetch<BlockedIp[]>(getBlockedIpsUrl(), { ...options, method: "GET" });
-};
-
-export const getGetBlockedIpsQueryKey = () => ["blockedIps"] as const;
-
-export const getGetBlockedIpsQueryOptions = <TData = Awaited<ReturnType<typeof getBlockedIps>>, TError = ErrorType<unknown>>(options?: {
-  query?: UseQueryOptions<Awaited<ReturnType<typeof getBlockedIps>>, TError, TData>;
-  request?: SecondParameter<typeof customFetch>;
-}): UseQueryOptions<Awaited<ReturnType<typeof getBlockedIps>>, TError, TData> => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-  const queryKey = queryOptions?.queryKey ?? getGetBlockedIpsQueryKey();
-  return { queryKey, queryFn: () => getBlockedIps(requestOptions), ...queryOptions };
-};
-
-export const useGetBlockedIps = <TData = Awaited<ReturnType<typeof getBlockedIps>>, TError = ErrorType<unknown>>(options?: {
-  query?: UseQueryOptions<Awaited<ReturnType<typeof getBlockedIps>>, TError, TData>;
-  request?: SecondParameter<typeof customFetch>;
-}): UseQueryResult<TData, TError> => {
-  return useQuery(getGetBlockedIpsQueryOptions(options));
-};
-
-/**
- * @summary Unblock an IP (owner only)
- */
-export const getUnblockIpUrl = (ip: string) => `/api/auth/blocked-ips/${encodeURIComponent(ip)}`;
-
-export const unblockIp = async (ip: string, options?: RequestInit): Promise<void> => {
-  return customFetch<void>(getUnblockIpUrl(ip), { ...options, method: "DELETE" });
-};
-
-export const getUnblockIpMutationOptions = <TError = ErrorType<unknown>, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof unblockIp>>, TError, { ip: string }, TContext>;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationOptions<Awaited<ReturnType<typeof unblockIp>>, TError, { ip: string }, TContext> => {
-  const mutationKey = ["unblockIp"];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof unblockIp>>, { ip: string }> = (props) => {
-    return unblockIp(props.ip, requestOptions);
-  };
-  return { mutationFn, ...mutationOptions };
-};
-
-export const useUnblockIp = <TError = ErrorType<unknown>, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof unblockIp>>, TError, { ip: string }, TContext>;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationResult<Awaited<ReturnType<typeof unblockIp>>, TError, { ip: string }, TContext> => {
-  return useMutation(getUnblockIpMutationOptions(options));
-};
-
-/**
- * @summary Bulk generate access codes (owner only)
- */
-export const getBulkGenerateCodesUrl = () => `/api/access-codes/bulk`;
-
-export const bulkGenerateCodes = async (data: BulkGenerateCodesBody, options?: RequestInit): Promise<AccessCode[]> => {
-  return customFetch<AccessCode[]>(getBulkGenerateCodesUrl(), {
-    ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(data),
-  });
-};
-
-export const getBulkGenerateCodesMutationOptions = <TError = ErrorType<unknown>, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof bulkGenerateCodes>>, TError, { data: BodyType<BulkGenerateCodesBody> }, TContext>;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationOptions<Awaited<ReturnType<typeof bulkGenerateCodes>>, TError, { data: BodyType<BulkGenerateCodesBody> }, TContext> => {
-  const mutationKey = ["bulkGenerateCodes"];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof bulkGenerateCodes>>, { data: BodyType<BulkGenerateCodesBody> }> = (props) => {
-    return bulkGenerateCodes(props.data, requestOptions);
-  };
-  return { mutationFn, ...mutationOptions };
-};
-
-export const useBulkGenerateCodes = <TError = ErrorType<unknown>, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof bulkGenerateCodes>>, TError, { data: BodyType<BulkGenerateCodesBody> }, TContext>;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationResult<Awaited<ReturnType<typeof bulkGenerateCodes>>, TError, { data: BodyType<BulkGenerateCodesBody> }, TContext> => {
-  return useMutation(getBulkGenerateCodesMutationOptions(options));
-};
-
-/**
  * @summary Search active ticket by valet number
  */
 export const getSearchTicketByValetNumberUrl = (
@@ -2066,6 +1929,95 @@ export function useSearchTicketByValetNumber<
     params,
     options,
   );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get movement log for a ticket
+ */
+export const getGetTicketMovementsUrl = (ticketId: number) => {
+  return `/api/tickets/${ticketId}/movements`;
+};
+
+export const getTicketMovements = async (
+  ticketId: number,
+  options?: RequestInit,
+): Promise<TicketMovement[]> => {
+  return customFetch<TicketMovement[]>(getGetTicketMovementsUrl(ticketId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTicketMovementsQueryKey = (ticketId: number) => {
+  return [`/api/tickets/${ticketId}/movements`] as const;
+};
+
+export const getGetTicketMovementsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTicketMovements>>,
+  TError = ErrorType<unknown>,
+>(
+  ticketId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getTicketMovements>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetTicketMovementsQueryKey(ticketId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getTicketMovements>>
+  > = ({ signal }) =>
+    getTicketMovements(ticketId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!ticketId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTicketMovements>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTicketMovementsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTicketMovements>>
+>;
+export type GetTicketMovementsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get movement log for a ticket
+ */
+
+export function useGetTicketMovements<
+  TData = Awaited<ReturnType<typeof getTicketMovements>>,
+  TError = ErrorType<unknown>,
+>(
+  ticketId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getTicketMovements>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTicketMovementsQueryOptions(ticketId, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
