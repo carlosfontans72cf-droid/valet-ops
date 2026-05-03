@@ -80,7 +80,7 @@ export const ListEventsResponse = zod.array(ListEventsResponseItem);
  */
 export const CreateEventBody = zod.object({
   name: zod.string(),
-  eventDate: zod.string(),
+  eventDate: zod.coerce.date(),
 });
 
 /**
@@ -109,7 +109,7 @@ export const UpdateEventParams = zod.object({
 
 export const UpdateEventBody = zod.object({
   name: zod.string().optional(),
-  eventDate: zod.string().optional(),
+  eventDate: zod.coerce.date().optional(),
   isActive: zod.boolean().optional(),
 });
 
@@ -244,9 +244,6 @@ export const ListTicketsResponseItem = zod.object({
   notes: zod.string().nullish(),
   relocatedToLocationId: zod.number().nullish(),
   relocatedToLocationName: zod.string().nullish(),
-  vehicleColor: zod.string().nullish(),
-  vehicleBrand: zod.string().nullish(),
-  licensePlate: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   deliveredAt: zod.coerce.date().nullish(),
 });
@@ -275,9 +272,6 @@ export const CreateTicketBody = zod.object({
     )
     .optional(),
   notes: zod.string().optional(),
-  vehicleColor: zod.string().optional(),
-  vehicleBrand: zod.string().optional(),
-  licensePlate: zod.string().optional(),
 });
 
 /**
@@ -312,9 +306,6 @@ export const ListTicketHistoryResponseItem = zod.object({
   notes: zod.string().nullish(),
   relocatedToLocationId: zod.number().nullish(),
   relocatedToLocationName: zod.string().nullish(),
-  vehicleColor: zod.string().nullish(),
-  vehicleBrand: zod.string().nullish(),
-  licensePlate: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   deliveredAt: zod.coerce.date().nullish(),
 });
@@ -352,9 +343,6 @@ export const GetTicketResponse = zod.object({
   notes: zod.string().nullish(),
   relocatedToLocationId: zod.number().nullish(),
   relocatedToLocationName: zod.string().nullish(),
-  vehicleColor: zod.string().nullish(),
-  vehicleBrand: zod.string().nullish(),
-  licensePlate: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   deliveredAt: zod.coerce.date().nullish(),
 });
@@ -413,9 +401,6 @@ export const UpdateTicketResponse = zod.object({
   notes: zod.string().nullish(),
   relocatedToLocationId: zod.number().nullish(),
   relocatedToLocationName: zod.string().nullish(),
-  vehicleColor: zod.string().nullish(),
-  vehicleBrand: zod.string().nullish(),
-  licensePlate: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   deliveredAt: zod.coerce.date().nullish(),
 });
@@ -454,12 +439,28 @@ export const SearchTicketByValetNumberResponse = zod.object({
   notes: zod.string().nullish(),
   relocatedToLocationId: zod.number().nullish(),
   relocatedToLocationName: zod.string().nullish(),
-  vehicleColor: zod.string().nullish(),
-  vehicleBrand: zod.string().nullish(),
-  licensePlate: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   deliveredAt: zod.coerce.date().nullish(),
 });
+
+/**
+ * @summary Get movement log for a ticket
+ */
+export const GetTicketMovementsParams = zod.object({
+  ticketId: zod.coerce.number(),
+});
+
+export const GetTicketMovementsResponseItem = zod.object({
+  id: zod.number(),
+  ticketId: zod.number(),
+  action: zod.enum(["parked", "in_transit", "delivered", "relocated"]),
+  performedBy: zod.string(),
+  locationName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const GetTicketMovementsResponse = zod.array(
+  GetTicketMovementsResponseItem,
+);
 
 /**
  * @summary List all parking locations with availability
