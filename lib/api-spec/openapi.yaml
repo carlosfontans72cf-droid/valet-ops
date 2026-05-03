@@ -657,6 +657,35 @@ paths:
               schema:
                 $ref: "#/components/schemas/AccessCode"
 
+  /access-codes/bulk:
+    post:
+      operationId: bulkGenerateCodes
+      tags: [access-codes]
+      summary: Bulk generate access codes (owner only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventId:
+                  type: integer
+                driverCount:
+                  type: integer
+                adminCount:
+                  type: integer
+              required: [eventId, driverCount, adminCount]
+      responses:
+        "201":
+          description: Created codes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccessCode"
+
   /access-codes/{codeId}:
     delete:
       operationId: deleteAccessCode
