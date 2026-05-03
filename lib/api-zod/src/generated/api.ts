@@ -246,6 +246,9 @@ export const ListTicketsResponseItem = zod.object({
   relocatedToLocationName: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   deliveredAt: zod.coerce.date().nullish(),
+  parkedBy: zod.string().nullish(),
+  relocatedBy: zod.string().nullish(),
+  deliveredBy: zod.string().nullish(),
 });
 export const ListTicketsResponse = zod.array(ListTicketsResponseItem);
 
@@ -308,6 +311,9 @@ export const ListTicketHistoryResponseItem = zod.object({
   relocatedToLocationName: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   deliveredAt: zod.coerce.date().nullish(),
+  parkedBy: zod.string().nullish(),
+  relocatedBy: zod.string().nullish(),
+  deliveredBy: zod.string().nullish(),
 });
 export const ListTicketHistoryResponse = zod.array(
   ListTicketHistoryResponseItem,
@@ -345,6 +351,9 @@ export const GetTicketResponse = zod.object({
   relocatedToLocationName: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   deliveredAt: zod.coerce.date().nullish(),
+  parkedBy: zod.string().nullish(),
+  relocatedBy: zod.string().nullish(),
+  deliveredBy: zod.string().nullish(),
 });
 
 /**
@@ -403,6 +412,20 @@ export const UpdateTicketResponse = zod.object({
   relocatedToLocationName: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   deliveredAt: zod.coerce.date().nullish(),
+  parkedBy: zod.string().nullish(),
+  relocatedBy: zod.string().nullish(),
+  deliveredBy: zod.string().nullish(),
+});
+
+/**
+ * @summary Delete a ticket (owner/admin only)
+ */
+export const DeleteTicketParams = zod.object({
+  ticketId: zod.coerce.number(),
+});
+
+export const DeleteTicketResponse = zod.object({
+  success: zod.boolean(),
 });
 
 /**
@@ -441,6 +464,9 @@ export const SearchTicketByValetNumberResponse = zod.object({
   relocatedToLocationName: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   deliveredAt: zod.coerce.date().nullish(),
+  parkedBy: zod.string().nullish(),
+  relocatedBy: zod.string().nullish(),
+  deliveredBy: zod.string().nullish(),
 });
 
 /**
