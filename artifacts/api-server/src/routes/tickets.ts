@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { valetTicketsTable, parkingLocationsTable } from "@workspace/db";
-import { eq, and, ne, or, ilike } from "drizzle-orm";
+import { valetTicketsTable, parkingLocationsTable, ticketMovementsTable } from "@workspace/db";
+import { eq, and, ne, asc } from "drizzle-orm";
 import { CreateTicketBody, UpdateTicketBody } from "@workspace/api-zod";
 import { requireAuth, AuthRequest } from "../middlewares/auth";
 
@@ -96,6 +96,22 @@ router.post("/tickets", requireAuth(["owner", "admin", "driver"]), async (req: A
     })
     .returning();
 
+  // Record "parked" movement
+  const performer = (req as AuthRequest).session?.driverName ?? "Desconocido";
+  let locationName: string | null = null;
+  if (parsed.data.parkingLocationId) {
+    const loc = await db.query.parkingLocationsTable.findFirst({
+      where: eq(parkingLocationsTable.id, parsed.data.parkingLocationId),
+    });
+    locationName = loc?.name ?? null;
+  }
+  await db.insert(ticketMovementsTable).values({
+    ticketId: ticket.id,
+    action: "parked",
+    performedBy: performer,
+    locationName,
+  });
+
   res.status(201).json(await enrichTicket(ticket));
 });
 
@@ -186,7 +202,36 @@ router.patch("/tickets/:ticketId", requireAuth(["owner", "admin", "driver"]), as
     return;
   }
 
+  // Record movement when status changes
+  if (parsed.data.status) {
+    const performer = (req as AuthRequest).session?.driverName ?? "Desconocido";
+    let movLocationName: string | null = null;
+    const locId = parsed.data.relocatedToLocationId ?? parsed.data.parkingLocationId ?? updated.relocatedToLocationId ?? updated.parkingLocationId;
+    if (locId) {
+      const loc = await db.query.parkingLocationsTable.findFirst({
+        where: eq(parkingLocationsTable.id, locId),
+      });
+      movLocationName = loc?.name ?? null;
+    }
+    await db.insert(ticketMovementsTable).values({
+      ticketId: updated.id,
+      action: parsed.data.status,
+      performedBy: performer,
+      locationName: movLocationName,
+    });
+  }
+
   res.json(await enrichTicket(updated));
+});
+
+// GET /api/tickets/:ticketId/movements
+router.get("/tickets/:ticketId/movements", requireAuth(), async (req, res) => {
+  const ticketId = parseInt(req.params.ticketId as string);
+  const movements = await db.query.ticketMovementsTable.findMany({
+    where: eq(ticketMovementsTable.ticketId, ticketId),
+    orderBy: [asc(ticketMovementsTable.createdAt)],
+  });
+  res.json(movements);
 });
 
 // DELETE /api/tickets/:ticketId (owner + admin only)
