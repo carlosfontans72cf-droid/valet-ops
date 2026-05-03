@@ -158,19 +158,39 @@ export default function HistoryPage() {
                   </p>
                 )}
               </div>
-              <div className="text-right shrink-0">
-                <p className="text-xs text-muted-foreground">
-                  {new Date(ticket.createdAt).toLocaleTimeString("es-ES", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(ticket.createdAt).toLocaleDateString("es-ES", {
-                    day: "2-digit",
-                    month: "2-digit",
-                  })}
-                </p>
+              <div className="text-right shrink-0 space-y-1">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground opacity-60">Ingreso</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(ticket.createdAt).toLocaleTimeString("es-ES", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(ticket.createdAt).toLocaleDateString("es-ES", {
+                      day: "2-digit",
+                      month: "2-digit",
+                    })}
+                  </p>
+                </div>
+                {ticket.deliveredAt && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-green-500 opacity-80">Entregado</p>
+                    <p className="text-xs text-green-400">
+                      {new Date(ticket.deliveredAt).toLocaleTimeString("es-ES", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    <p className="text-xs text-green-400">
+                      {new Date(ticket.deliveredAt).toLocaleDateString("es-ES", {
+                        day: "2-digit",
+                        month: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           ))}
