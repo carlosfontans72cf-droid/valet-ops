@@ -88,6 +88,44 @@ paths:
         "200":
           description: Logged out
 
+  /auth/blocked-ips:
+    get:
+      operationId: getBlockedIps
+      tags: [auth]
+      summary: List blocked IPs (owner only)
+      responses:
+        "200":
+          description: List of blocked IPs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BlockedIp"
+
+  /auth/blocked-ips/{ip}:
+    delete:
+      operationId: unblockIp
+      tags: [auth]
+      summary: Unblock an IP (owner only)
+      parameters:
+        - name: ip
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Unblocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required: [success]
+
   /config:
     get:
       operationId: getConfig
@@ -636,6 +674,18 @@ paths:
 
 components:
   schemas:
+    BlockedIp:
+      type: object
+      properties:
+        ip:
+          type: string
+        count:
+          type: integer
+        lastAttempt:
+          type: string
+          format: date-time
+      required: [ip, count, lastAttempt]
+
     HealthStatus:
       type: object
       properties:
