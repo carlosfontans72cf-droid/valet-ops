@@ -1,0 +1,956 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Valet Parking API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication
+  - name: events
+    description: Event management
+  - name: shifts
+    description: Shift management
+  - name: tickets
+    description: Valet tickets
+  - name: parking
+    description: Parking locations
+  - name: access-codes
+    description: Access code management
+  - name: config
+    description: App configuration
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with access code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Invalid code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current session info
+      responses:
+        "200":
+          description: Session info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionInfo"
+        "401":
+          description: Not authenticated
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+
+  /config:
+    get:
+      operationId: getConfig
+      tags: [config]
+      summary: Get app configuration (name, etc.)
+      responses:
+        "200":
+          description: App config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppConfig"
+    patch:
+      operationId: updateConfig
+      tags: [config]
+      summary: Update app configuration (owner only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateConfigBody"
+      responses:
+        "200":
+          description: Updated config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppConfig"
+
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List all events
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+    post:
+      operationId: createEvent
+      tags: [events]
+      summary: Create a new event (owner only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEventBody"
+      responses:
+        "201":
+          description: Created event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/{eventId}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get event by ID
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+    patch:
+      operationId: updateEvent
+      tags: [events]
+      summary: Update event (owner only)
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEventBody"
+      responses:
+        "200":
+          description: Updated event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+    delete:
+      operationId: deleteEvent
+      tags: [events]
+      summary: Delete event (owner only)
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+
+  /events/{eventId}/clear-history:
+    post:
+      operationId: clearEventHistory
+      tags: [events]
+      summary: Clear event ticket history (owner only)
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cleared
+
+  /events/{eventId}/stats:
+    get:
+      operationId: getEventStats
+      tags: [events]
+      summary: Get event statistics (active tickets, delivered, by location)
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventStats"
+
+  /shifts:
+    get:
+      operationId: listShifts
+      tags: [shifts]
+      summary: List shifts for an event
+      parameters:
+        - name: eventId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Shifts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Shift"
+    post:
+      operationId: createShift
+      tags: [shifts]
+      summary: Open a new shift (admin or owner)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShiftBody"
+      responses:
+        "201":
+          description: Created shift
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shift"
+
+  /shifts/{shiftId}:
+    patch:
+      operationId: updateShift
+      tags: [shifts]
+      summary: Update shift (close, modify times) - admin or owner
+      parameters:
+        - name: shiftId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateShiftBody"
+      responses:
+        "200":
+          description: Updated shift
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shift"
+
+  /tickets:
+    get:
+      operationId: listTickets
+      tags: [tickets]
+      summary: List active valet tickets for an event/shift
+      parameters:
+        - name: eventId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: shiftId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [active, in_transit, delivered, relocated]
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Tickets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ValetTicket"
+    post:
+      operationId: createTicket
+      tags: [tickets]
+      summary: Create a new valet ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTicketBody"
+      responses:
+        "201":
+          description: Created ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValetTicket"
+        "409":
+          description: Duplicate valet number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /tickets/history:
+    get:
+      operationId: listTicketHistory
+      tags: [tickets]
+      summary: Full ticket history for an event (owner only)
+      parameters:
+        - name: eventId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: History
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ValetTicket"
+
+  /tickets/{ticketId}:
+    get:
+      operationId: getTicket
+      tags: [tickets]
+      summary: Get ticket by ID (also used for search by valet number)
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValetTicket"
+    patch:
+      operationId: updateTicket
+      tags: [tickets]
+      summary: Update ticket status (search, in_transit, deliver, relocate)
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTicketBody"
+      responses:
+        "200":
+          description: Updated ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValetTicket"
+
+  /tickets/search/{valetNumber}:
+    get:
+      operationId: searchTicketByValetNumber
+      tags: [tickets]
+      summary: Search active ticket by valet number
+      parameters:
+        - name: valetNumber
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: eventId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Found ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValetTicket"
+        "404":
+          description: Not found
+
+  /parking-locations:
+    get:
+      operationId: listParkingLocations
+      tags: [parking]
+      summary: List all parking locations with availability
+      parameters:
+        - name: eventId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Parking locations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ParkingLocation"
+    post:
+      operationId: createParkingLocation
+      tags: [parking]
+      summary: Create parking location (owner only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateParkingLocationBody"
+      responses:
+        "201":
+          description: Created location
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParkingLocation"
+
+  /parking-locations/{locationId}:
+    patch:
+      operationId: updateParkingLocation
+      tags: [parking]
+      summary: Update parking location (owner only)
+      parameters:
+        - name: locationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateParkingLocationBody"
+      responses:
+        "200":
+          description: Updated location
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParkingLocation"
+    delete:
+      operationId: deleteParkingLocation
+      tags: [parking]
+      summary: Delete parking location (owner only)
+      parameters:
+        - name: locationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+
+  /access-codes:
+    get:
+      operationId: listAccessCodes
+      tags: [access-codes]
+      summary: List access codes for an event (owner only)
+      parameters:
+        - name: eventId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Access codes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccessCode"
+    post:
+      operationId: createAccessCode
+      tags: [access-codes]
+      summary: Create an access code (owner only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccessCodeBody"
+      responses:
+        "201":
+          description: Created code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessCode"
+
+  /access-codes/{codeId}:
+    delete:
+      operationId: deleteAccessCode
+      tags: [access-codes]
+      summary: Delete/revoke an access code (owner only)
+      parameters:
+        - name: codeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required: [error]
+
+    LoginBody:
+      type: object
+      properties:
+        code:
+          type: string
+        driverName:
+          type: string
+          description: Required for driver role
+        eventId:
+          type: integer
+          description: Required for admin/driver role
+      required: [code]
+
+    LoginResponse:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [owner, admin, driver]
+        driverName:
+          type: string
+        eventId:
+          type: integer
+        sessionToken:
+          type: string
+      required: [role, sessionToken]
+
+    SessionInfo:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [owner, admin, driver]
+        driverName:
+          type: string
+        eventId:
+          type: integer
+      required: [role]
+
+    AppConfig:
+      type: object
+      properties:
+        id:
+          type: integer
+        appName:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, appName]
+
+    UpdateConfigBody:
+      type: object
+      properties:
+        appName:
+          type: string
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        eventDate:
+          type: string
+          format: date
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        activeShiftId:
+          type: integer
+          nullable: true
+        hasOpenShift:
+          type: boolean
+      required: [id, name, eventDate, isActive, createdAt, hasOpenShift]
+
+    CreateEventBody:
+      type: object
+      properties:
+        name:
+          type: string
+        eventDate:
+          type: string
+          format: date
+      required: [name, eventDate]
+
+    UpdateEventBody:
+      type: object
+      properties:
+        name:
+          type: string
+        eventDate:
+          type: string
+          format: date
+        isActive:
+          type: boolean
+
+    EventStats:
+      type: object
+      properties:
+        totalActive:
+          type: integer
+        totalDelivered:
+          type: integer
+        totalInTransit:
+          type: integer
+        totalRelocated:
+          type: integer
+        byLocation:
+          type: array
+          items:
+            type: object
+            properties:
+              locationId:
+                type: integer
+              locationName:
+                type: string
+              count:
+                type: integer
+              capacity:
+                type: integer
+            required: [locationId, locationName, count, capacity]
+      required: [totalActive, totalDelivered, totalInTransit, totalRelocated, byLocation]
+
+    Shift:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        label:
+          type: string
+        openedBy:
+          type: string
+        openedAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+        isOpen:
+          type: boolean
+      required: [id, eventId, label, openedBy, openedAt, isOpen]
+
+    CreateShiftBody:
+      type: object
+      properties:
+        eventId:
+          type: integer
+        label:
+          type: string
+        openedBy:
+          type: string
+      required: [eventId, label, openedBy]
+
+    UpdateShiftBody:
+      type: object
+      properties:
+        label:
+          type: string
+        closedAt:
+          type: string
+          format: date-time
+        isOpen:
+          type: boolean
+
+    ValetTicket:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        shiftId:
+          type: integer
+        valetNumber:
+          type: string
+        driverName:
+          type: string
+        keyLocation:
+          type: string
+          enum: [drawer, board, not_found, with_owner]
+        parkingLocationId:
+          type: integer
+          nullable: true
+        parkingLocationName:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [active, in_transit, delivered, relocated]
+        vehicleDamages:
+          type: array
+          items:
+            type: string
+            enum: [front_door, rear_bumper, front_bumper, rear_light, front_light, hood]
+        notes:
+          type: string
+          nullable: true
+        relocatedToLocationId:
+          type: integer
+          nullable: true
+        relocatedToLocationName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        deliveredAt:
+          type: string
+          format: date-time
+          nullable: true
+      required: [id, eventId, shiftId, valetNumber, driverName, keyLocation, status, vehicleDamages, createdAt]
+
+    CreateTicketBody:
+      type: object
+      properties:
+        eventId:
+          type: integer
+        shiftId:
+          type: integer
+        valetNumber:
+          type: string
+        driverName:
+          type: string
+        keyLocation:
+          type: string
+          enum: [drawer, board, not_found, with_owner]
+        parkingLocationId:
+          type: integer
+        vehicleDamages:
+          type: array
+          items:
+            type: string
+            enum: [front_door, rear_bumper, front_bumper, rear_light, front_light, hood]
+        notes:
+          type: string
+      required: [eventId, shiftId, valetNumber, driverName, keyLocation, parkingLocationId]
+
+    UpdateTicketBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [active, in_transit, delivered, relocated]
+        keyLocation:
+          type: string
+          enum: [drawer, board, not_found, with_owner]
+        parkingLocationId:
+          type: integer
+        relocatedToLocationId:
+          type: integer
+        vehicleDamages:
+          type: array
+          items:
+            type: string
+            enum: [front_door, rear_bumper, front_bumper, rear_light, front_light, hood]
+        notes:
+          type: string
+
+    ParkingLocation:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        capacity:
+          type: integer
+        currentCount:
+          type: integer
+        colorHex:
+          type: string
+        isActive:
+          type: boolean
+      required: [id, name, capacity, currentCount, colorHex, isActive]
+
+    CreateParkingLocationBody:
+      type: object
+      properties:
+        name:
+          type: string
+        capacity:
+          type: integer
+        colorHex:
+          type: string
+      required: [name, capacity, colorHex]
+
+    UpdateParkingLocationBody:
+      type: object
+      properties:
+        name:
+          type: string
+        capacity:
+          type: integer
+        colorHex:
+          type: string
+        isActive:
+          type: boolean
+
+    AccessCode:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+          nullable: true
+        code:
+          type: string
+        role:
+          type: string
+          enum: [owner, admin, driver]
+        label:
+          type: string
+        isActive:
+          type: boolean
+        expiresAfterShiftClose:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, code, role, label, isActive, expiresAfterShiftClose, createdAt]
+
+    CreateAccessCodeBody:
+      type: object
+      properties:
+        eventId:
+          type: integer
+        code:
+          type: string
+        role:
+          type: string
+          enum: [admin, driver]
+        label:
+          type: string
+        expiresAfterShiftClose:
+          type: boolean
+      required: [code, role, label]

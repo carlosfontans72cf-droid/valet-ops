@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: valet-ops
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: >
+      npm install -g pnpm &&
+      pnpm install --frozen-lockfile &&
+      pnpm run typecheck:libs &&
+      BASE_PATH=/ pnpm --filter @workspace/valet-app run build &&
+      pnpm --filter @workspace/api-server run build
+    startCommand: node --enable-source-maps ./artifacts/api-server/dist/index.mjs
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
