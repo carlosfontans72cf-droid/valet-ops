@@ -133,6 +133,25 @@ export default function HistoryPage() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Chofer: {ticket.driverName}
                 </p>
+                {(ticket.parkedBy || ticket.relocatedBy || ticket.deliveredBy) && (
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5">
+                    {ticket.parkedBy && (
+                      <span className="text-xs text-muted-foreground">
+                        🅿️ {ticket.parkedBy}
+                      </span>
+                    )}
+                    {ticket.relocatedBy && (
+                      <span className="text-xs text-muted-foreground">
+                        📍 {ticket.relocatedBy}
+                      </span>
+                    )}
+                    {ticket.deliveredBy && (
+                      <span className="text-xs text-muted-foreground">
+                        ✅ {ticket.deliveredBy}
+                      </span>
+                    )}
+                  </div>
+                )}
                 {ticket.vehicleDamages && ticket.vehicleDamages.length > 0 && (
                   <p className="text-xs text-red-400 mt-1 font-medium">
                     Daños: {ticket.vehicleDamages.length}
